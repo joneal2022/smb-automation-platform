@@ -7,3 +7,13 @@ celery>=5.5.0
 redis>=6.2.0
 djangorestframework-simplejwt>=5.5.0
 Pillow>=11.0.0
+pytesseract>=0.3.13
+openai>=1.52.0
+
+# Testing dependencies
+pytest>=8.3.0
+pytest-django>=4.9.0
+factory-boy>=3.3.1
+responses>=0.25.0
+coverage>=7.6.0
+locust>=2.32.0

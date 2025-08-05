@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Container, Row, Col, Card, Tab, Tabs, Alert, Button, 
   Table, Badge, Form, Modal, Spinner, ProgressBar 
 } from 'react-bootstrap';
 import { 
   Upload, FileText, Search, Filter, Download, Eye, 
-  Clock, CheckCircle, AlertCircle, RefreshCw, Settings 
+  Clock, CheckCircle, AlertCircle, RefreshCw, Settings, Edit, Layers 
 } from 'lucide-react';
 import { useAuth } from '../../services/auth/AuthContext';
 import DocumentUpload from '../../components/molecules/DocumentUpload';
+import BatchProcessingInterface from '../../components/molecules/BatchProcessingInterface';
 
 const DocumentProcessingPage = () => {
   const { user, canAccessFeature } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upload');
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -155,6 +158,10 @@ const DocumentProcessingPage = () => {
   const viewDocument = (documentId) => {
     // Simulate view
     console.log('Viewing document:', documentId);
+  };
+
+  const reviewDocument = (documentId) => {
+    navigate(`/documents/review/${documentId}`);
   };
 
   return (
@@ -404,14 +411,27 @@ const DocumentProcessingPage = () => {
                                 size="sm"
                                 onClick={() => viewDocument(doc.id)}
                                 data-testid={`view-${doc.id}`}
+                                title="View Document"
                               >
                                 <Eye size={14} />
                               </Button>
+                              {doc.status === 'review_required' && (
+                                <Button
+                                  variant="outline-warning"
+                                  size="sm"
+                                  onClick={() => reviewDocument(doc.id)}
+                                  data-testid={`review-${doc.id}`}
+                                  title="Review & Correct"
+                                >
+                                  <Edit size={14} />
+                                </Button>
+                              )}
                               <Button
                                 variant="outline-secondary"
                                 size="sm"
                                 onClick={() => downloadDocument(doc.id)}
                                 data-testid={`download-${doc.id}`}
+                                title="Download"
                               >
                                 <Download size={14} />
                               </Button>
@@ -421,6 +441,7 @@ const DocumentProcessingPage = () => {
                                   size="sm"
                                   onClick={() => retryProcessing(doc.id)}
                                   data-testid={`retry-${doc.id}`}
+                                  title="Retry Processing"
                                 >
                                   <RefreshCw size={14} />
                                 </Button>
@@ -439,7 +460,7 @@ const DocumentProcessingPage = () => {
             <Tab eventKey="review" title={
               <span data-testid="review-tab">
                 <AlertCircle size={16} className="me-1" />
-                Review Required
+                Review Required {processingStats.review_required > 0 && <Badge bg="warning">{processingStats.review_required}</Badge>}
               </span>
             }>
               <Card.Body>
@@ -448,16 +469,85 @@ const DocumentProcessingPage = () => {
                   Documents with confidence scores below 80% require manual review to ensure accuracy.
                 </Alert>
                 
-                <div className="text-center py-4">
-                  <AlertCircle size={48} className="text-warning mb-3" />
-                  <h5>Review Interface</h5>
-                  <p className="text-muted">
-                    This will show documents requiring manual review and correction.
-                  </p>
-                  <Button variant="primary" disabled>
-                    Coming Soon
-                  </Button>
-                </div>
+                {documents.filter(doc => doc.status === 'review_required').length === 0 ? (
+                  <div className="text-center py-4">
+                    <CheckCircle size={48} className="text-success mb-3" />
+                    <h5>All Clear!</h5>
+                    <p className="text-muted">
+                      No documents currently require manual review.
+                    </p>
+                  </div>
+                ) : (
+                  <Table responsive hover data-testid="review-documents-table">
+                    <thead>
+                      <tr>
+                        <th>Document</th>
+                        <th>Type</th>
+                        <th>Confidence</th>
+                        <th>Extracted Fields</th>
+                        <th>Uploaded</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {documents.filter(doc => doc.status === 'review_required').map((doc) => (
+                        <tr key={doc.id} data-testid={`review-row-${doc.id}`}>
+                          <td>
+                            <div className="d-flex align-items-center">
+                              <AlertCircle size={16} className="text-warning me-2" />
+                              <div>
+                                <div className="fw-medium">{doc.filename}</div>
+                                <small className="text-muted">{doc.size}</small>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <Badge bg="light" text="dark">{doc.type}</Badge>
+                          </td>
+                          <td>
+                            <div>
+                              <ProgressBar 
+                                now={doc.confidence * 100} 
+                                size="sm"
+                                variant="warning"
+                              />
+                              <small className="text-warning fw-medium">{Math.round(doc.confidence * 100)}% (Low)</small>
+                            </div>
+                          </td>
+                          <td>
+                            <Badge bg="info">{doc.extractedFields} fields</Badge>
+                          </td>
+                          <td>
+                            <small>{formatDate(doc.uploadedAt)}</small>
+                          </td>
+                          <td>
+                            <Button
+                              variant="warning"
+                              size="sm"
+                              onClick={() => reviewDocument(doc.id)}
+                              data-testid={`start-review-${doc.id}`}
+                            >
+                              <Edit size={14} className="me-1" />
+                              Start Review
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Card.Body>
+            </Tab>
+
+            {/* Batch Processing Tab */}
+            <Tab eventKey="batch" title={
+              <span data-testid="batch-tab">
+                <Layers size={16} className="me-1" />
+                Batch Processing
+              </span>
+            }>
+              <Card.Body>
+                <BatchProcessingInterface />
               </Card.Body>
             </Tab>
           </Tabs>
