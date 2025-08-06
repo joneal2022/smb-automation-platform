@@ -8,6 +8,8 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import DocumentProcessingPage from './pages/documents/DocumentProcessingPage';
+import WorkflowListPage from './pages/workflows/WorkflowListPage';
+import WorkflowBuilderPage from './pages/workflows/WorkflowBuilderPage';
 
 // Import Bootstrap CSS is already handled in main.jsx
 import './App.css';
@@ -31,15 +33,20 @@ function App() {
             } 
           />
           
-          {/* Role-specific Protected Routes (examples for future implementation) */}
+          {/* Workflow Routes */}
           <Route 
-            path="/workflows/*" 
+            path="/workflows" 
             element={
               <ProtectedRoute requiredFeature="workflow_builder">
-                <div className="p-4 text-center">
-                  <h3>Workflow Builder</h3>
-                  <p>Coming soon...</p>
-                </div>
+                <WorkflowListPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/workflows/builder" 
+            element={
+              <ProtectedRoute requiredFeature="workflow_builder">
+                <WorkflowBuilderPage />
               </ProtectedRoute>
             } 
           />
