@@ -102,6 +102,15 @@ class WorkflowExecutionService:
             # Simulate node execution based on type
             success = WorkflowExecutionService._simulate_node_execution(node, node_execution)
             
+            # Check if node is waiting for user action (e.g., approval)
+            node_execution.refresh_from_db()
+            if node_execution.status == 'waiting_approval':
+                # Pause the workflow execution for user action
+                execution.status = 'paused'
+                execution.current_node = node
+                execution.save()
+                return
+            
             if success:
                 node_execution.status = 'completed'
                 node_execution.completed_at = timezone.now()
@@ -130,7 +139,9 @@ class WorkflowExecutionService:
                 node_execution.error_message = f"Node execution failed: {node.name}"
                 node_execution.save()
                 
-                # Fail the entire workflow
+                # Set error message and fail the entire workflow
+                execution.error_message = f"Node execution failed: {node.name}"
+                execution.save()
                 WorkflowExecutionService._complete_execution(execution, 'failed')
                 
         except Exception as e:
@@ -139,6 +150,9 @@ class WorkflowExecutionService:
             node_execution.error_message = str(e)
             node_execution.save()
             
+            # Set error message and fail the entire workflow
+            execution.error_message = f"Exception in node {node.name}: {str(e)}"
+            execution.save()
             WorkflowExecutionService._complete_execution(execution, 'failed')
     
     @staticmethod

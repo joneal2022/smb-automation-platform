@@ -12,7 +12,7 @@ import uuid
 
 from apps.workflows.models import (
     NodeType, Workflow, WorkflowNode, WorkflowEdge,
-    WorkflowExecution, WorkflowNodeExecution
+    WorkflowExecution, WorkflowNodeExecution, WorkflowAuditLog
 )
 from apps.workflows.services import WorkflowExecutionService, WorkflowAuditService
 from tests.factories import (

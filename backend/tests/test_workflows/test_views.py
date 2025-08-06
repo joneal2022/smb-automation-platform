@@ -15,8 +15,8 @@ from apps.workflows.models import (
 )
 from tests.factories import (
     NodeTypeFactory, WorkflowTemplateFactory, WorkflowFactory, WorkflowNodeFactory,
-    WorkflowEdgeFactory, WorkflowExecutionFactory, UserFactory, ActiveWorkflowFactory,
-    InvoiceProcessingTemplateFactory
+    WorkflowEdgeFactory, WorkflowExecutionFactory, WorkflowAuditLogFactory, UserFactory, 
+    ActiveWorkflowFactory, InvoiceProcessingTemplateFactory
 )
 
 User = get_user_model()
@@ -67,10 +67,11 @@ class TestNodeTypeViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 2
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 2
         
         # Check node type data
-        node_names = [item['name'] for item in data]
+        node_names = [item['name'] for item in results]
         assert 'Start Node' in node_names
         assert 'Process Node' in node_names
     
@@ -129,9 +130,10 @@ class TestWorkflowTemplateViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 2
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 2
         
-        template_names = [item['name'] for item in data]
+        template_names = [item['name'] for item in results]
         assert 'Invoice Processing' in template_names
         assert 'Customer Onboarding' in template_names
     
@@ -164,8 +166,9 @@ class TestWorkflowTemplateViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
-        assert data[0]['category'] == 'document_processing'
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 1
+        assert results[0]['category'] == 'document_processing'
     
     def test_search_templates(self, authenticated_client, db):
         """Test searching templates."""
@@ -177,8 +180,9 @@ class TestWorkflowTemplateViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
-        assert data[0]['name'] == 'Invoice Processing'
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 1
+        assert results[0]['name'] == 'Invoice Processing'
     
     def test_use_template(self, authenticated_client, authenticated_user, db):
         """Test creating workflow from template."""
@@ -227,7 +231,7 @@ class TestWorkflowTemplateViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data['name'] == 'New Template'
-        assert data['created_by'] == admin_user.id
+        assert data['created_by'] == str(admin_user.id)
         assert data['usage_count'] == 0
 
 
@@ -246,7 +250,8 @@ class TestWorkflowViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        workflow_ids = [item['id'] for item in data]
+        results = data.get('results', data)  # Handle pagination
+        workflow_ids = [item['id'] for item in results]
         
         assert str(workflow1.id) in workflow_ids
         assert str(workflow2.id) not in workflow_ids
@@ -284,7 +289,7 @@ class TestWorkflowViewSet:
         assert response.status_code == status.HTTP_201_CREATED
         data = response.json()
         assert data['name'] == 'New Workflow'
-        assert data['created_by'] == authenticated_user.id
+        assert data['created_by'] == str(authenticated_user.id)
         assert data['status'] == 'draft'
     
     def test_update_workflow(self, authenticated_client, authenticated_user, db):
@@ -445,7 +450,7 @@ class TestWorkflowViewSet:
         data = response.json()
         assert 'id' in data
         assert data['workflow'] == str(workflow.id)
-        assert data['triggered_by'] == authenticated_user.id
+        assert data['triggered_by'] == str(authenticated_user.id)
         assert data['trigger_data'] == trigger_data['trigger_data']
     
     def test_execute_inactive_workflow(self, authenticated_client, authenticated_user, db):
@@ -469,7 +474,8 @@ class TestWorkflowViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        execution_ids = [item['id'] for item in data]
+        results = data.get('results', data)  # Handle pagination
+        execution_ids = [item['id'] for item in results]
         assert str(execution1.id) in execution_ids
         assert str(execution2.id) in execution_ids
     
@@ -501,7 +507,8 @@ class TestWorkflowExecutionViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        execution_ids = [item['id'] for item in data]
+        results = data.get('results', data)  # Handle pagination
+        execution_ids = [item['id'] for item in results]
         
         assert str(execution1.id) in execution_ids
         assert str(execution2.id) not in execution_ids
@@ -535,7 +542,8 @@ class TestWorkflowAuditLogViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        log_ids = [item['id'] for item in data]
+        results = data.get('results', data)  # Handle pagination
+        log_ids = [item['id'] for item in results]
         
         assert str(log1.id) in log_ids
         assert str(log2.id) not in log_ids
@@ -551,7 +559,8 @@ class TestWorkflowAuditLogViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 1
         assert data[0]['id'] == str(log1.id)
     
     def test_filter_audit_logs_by_action(self, authenticated_client, authenticated_user, db):
@@ -569,7 +578,8 @@ class TestWorkflowAuditLogViewSet:
         
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert len(data) == 1
+        results = data.get('results', data)  # Handle pagination
+        assert len(results) == 1
         assert data[0]['action'] == 'workflow_created'
 
 

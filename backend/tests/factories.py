@@ -3,7 +3,10 @@ Factory classes for generating test data
 """
 import factory
 import factory.fuzzy
+from faker import Faker
 from django.contrib.auth import get_user_model
+
+fake = Faker()
 from django.core.files.uploadedfile import SimpleUploadedFile
 from apps.documents.models import (
     DocumentType, Document, DocumentExtraction, 
@@ -308,7 +311,7 @@ class WorkflowTemplateFactory(factory.django.DjangoModelFactory):
     setup_time_minutes = factory.fuzzy.FuzzyInteger(15, 120)
     complexity_level = factory.fuzzy.FuzzyInteger(1, 5)
     tags = factory.LazyFunction(lambda: ['business', 'automation', 'process'])
-    usage_count = factory.fuzzy.FuzzyInteger(0, 100)
+    usage_count = 0
     is_active = True
     created_by = factory.SubFactory(UserFactory)
 
@@ -409,31 +412,21 @@ class WorkflowExecutionFactory(factory.django.DjangoModelFactory):
         "variables": {"user_id": 123, "document_count": 5},
         "metadata": {"start_time": timezone.now().isoformat()}
     })
-    completed_at = factory.Maybe(
-        'status',
-        yes_declaration=factory.Faker('date_time', tzinfo=dt_timezone.utc),
-        no_declaration=None,
-        condition=lambda obj: obj.status in ['completed', 'failed', 'cancelled']
+    completed_at = factory.LazyAttribute(
+        lambda obj: fake.date_time(tzinfo=dt_timezone.utc) 
+        if obj.status in ['completed', 'failed', 'cancelled'] else None
     )
-    duration_seconds = factory.Maybe(
-        'completed_at',
-        yes_declaration=factory.fuzzy.FuzzyFloat(1.0, 600.0),
-        no_declaration=None
+    duration_seconds = factory.LazyAttribute(
+        lambda obj: factory.fuzzy.FuzzyFloat(1.0, 600.0).fuzz() if obj.completed_at else None
     )
-    error_message = factory.Maybe(
-        'status',
-        yes_declaration=factory.Faker('sentence'),
-        no_declaration='',
-        condition=lambda obj: obj.status == 'failed'
+    error_message = factory.LazyAttribute(
+        lambda obj: fake.sentence() if obj.status == 'failed' else ''
     )
-    error_details = factory.Maybe(
-        'status',
-        yes_declaration=factory.LazyFunction(lambda: {
+    error_details = factory.LazyAttribute(
+        lambda obj: {
             "error_type": "ProcessingError",
             "stack_trace": "Mock stack trace"
-        }),
-        no_declaration=factory.LazyFunction(dict),
-        condition=lambda obj: obj.status == 'failed'
+        } if obj.status == 'failed' else {}
     )
 
 
@@ -448,41 +441,24 @@ class WorkflowNodeExecutionFactory(factory.django.DjangoModelFactory):
     status = factory.Iterator(['pending', 'running', 'completed', 'failed', 'skipped', 'waiting_approval'])
     input_data = factory.LazyFunction(lambda: {"input_param": "test_value"})
     output_data = factory.LazyFunction(lambda: {"result": "success", "processed_count": 5})
-    started_at = factory.Maybe(
-        'status',
-        yes_declaration=factory.Faker('date_time', tzinfo=dt_timezone.utc),
-        no_declaration=None,
-        condition=lambda obj: obj.status != 'pending'
+    started_at = factory.LazyAttribute(
+        lambda obj: fake.date_time(tzinfo=dt_timezone.utc) if obj.status != 'pending' else None
     )
-    completed_at = factory.Maybe(
-        'status',
-        yes_declaration=factory.Faker('date_time', tzinfo=dt_timezone.utc),
-        no_declaration=None,
-        condition=lambda obj: obj.status in ['completed', 'failed', 'skipped']
+    completed_at = factory.LazyAttribute(
+        lambda obj: fake.date_time(tzinfo=dt_timezone.utc) if obj.status in ['completed', 'failed', 'skipped'] else None
     )
-    duration_seconds = factory.Maybe(
-        'completed_at',
-        yes_declaration=factory.fuzzy.FuzzyFloat(0.1, 60.0),
-        no_declaration=None
+    duration_seconds = factory.LazyAttribute(
+        lambda obj: factory.fuzzy.FuzzyFloat(0.1, 60.0).fuzz() if obj.completed_at else None
     )
-    error_message = factory.Maybe(
-        'status',
-        yes_declaration=factory.Faker('sentence'),
-        no_declaration='',
-        condition=lambda obj: obj.status == 'failed'
+    error_message = factory.LazyAttribute(
+        lambda obj: fake.sentence() if obj.status == 'failed' else ''
     )
     retry_count = factory.fuzzy.FuzzyInteger(0, 3)
-    approved_by = factory.Maybe(
-        'status',
-        yes_declaration=factory.SubFactory(UserFactory),
-        no_declaration=None,
-        condition=lambda obj: obj.status == 'waiting_approval'
+    approved_by = factory.LazyAttribute(
+        lambda obj: UserFactory() if obj.status == 'waiting_approval' else None
     )
-    approval_notes = factory.Maybe(
-        'approved_by',
-        yes_declaration=factory.Faker('sentence'),
-        no_declaration='',
-        condition=lambda obj: obj.approved_by is not None
+    approval_notes = factory.LazyAttribute(
+        lambda obj: fake.sentence() if obj.approved_by is not None else ''
     )
 
 

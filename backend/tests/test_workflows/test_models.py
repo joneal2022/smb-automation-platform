@@ -238,9 +238,11 @@ class TestWorkflow:
         
         workflow.assigned_users.add(user1, user2)
         
-        assert workflow.assigned_users.count() == 2
+        # Factory automatically adds created_by user + our 2 users = 3
+        assert workflow.assigned_users.count() == 3
         assert user1 in workflow.assigned_users.all()
         assert user2 in workflow.assigned_users.all()
+        assert workflow.created_by in workflow.assigned_users.all()
     
     def test_workflow_definition_field(self, db):
         """Test workflow definition JSON field."""

@@ -95,7 +95,7 @@ class WorkflowSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'last_executed_at'
         ]
         read_only_fields = [
-            'id', 'created_by_name', 'assigned_users_details', 'template_name',
+            'id', 'created_by', 'created_by_name', 'assigned_users_details', 'template_name',
             'total_executions', 'successful_executions', 'failed_executions',
             'average_duration_seconds', 'success_rate', 'nodes', 'edges',
             'created_at', 'updated_at', 'last_executed_at'
