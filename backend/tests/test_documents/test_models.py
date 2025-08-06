@@ -94,7 +94,7 @@ class TestDocument:
     
     def test_file_size_mb_property(self, db):
         """Test file size in MB calculation"""
-        document = DocumentFactory(file_size=2048576)  # 2MB in bytes
+        document = DocumentFactory(file_size=2097152)  # 2MB in bytes (2*1024*1024)
         assert document.file_size_mb == 2.0
     
     def test_processing_time_property(self, db):
@@ -218,7 +218,8 @@ class TestDocumentExtraction:
             field_name="total_amount",
             field_value="$1,234.56",
             field_type="currency",
-            confidence=0.95
+            confidence=0.95,
+            is_verified=False
         )
         
         assert extraction.field_name == "total_amount"

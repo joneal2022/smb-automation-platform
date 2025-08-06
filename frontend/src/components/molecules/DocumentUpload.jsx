@@ -55,6 +55,9 @@ const DocumentUpload = ({
 
   // Get file icon based on type
   const getFileIcon = (file) => {
+    if (!file.type) {
+      return <FileText size={24} className="text-primary" />;
+    }
     if (file.type.startsWith('image/')) {
       return <Image size={24} className="text-info" />;
     } else if (file.type === 'application/pdf') {
@@ -165,7 +168,7 @@ const DocumentUpload = ({
     });
   };
 
-  const previewFile = (file) => {
+  const handlePreviewFile = (file) => {
     setPreviewFile(file);
     setShowPreviewModal(true);
   };
@@ -399,7 +402,7 @@ const DocumentUpload = ({
                         <Button
                           variant="outline-primary"
                           size="sm"
-                          onClick={() => previewFile(file)}
+                          onClick={() => handlePreviewFile(file)}
                           data-testid={`preview-${file.id}`}
                         >
                           <Eye size={14} />

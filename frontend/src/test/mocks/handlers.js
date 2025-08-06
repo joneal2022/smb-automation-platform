@@ -133,6 +133,20 @@ export const handlers = [
     return HttpResponse.json({ message: 'Logged out successfully' })
   }),
 
+  http.get('/api/auth/me/', () => {
+    return HttpResponse.json({
+      id: 1,
+      email: 'test@example.com',
+      first_name: 'Test',
+      last_name: 'User',
+      organization: {
+        id: 1,
+        name: 'Test Organization'
+      },
+      role: 'business_owner'
+    })
+  }),
+
   // Document handlers
   http.get('/api/documents/', () => {
     return HttpResponse.json({

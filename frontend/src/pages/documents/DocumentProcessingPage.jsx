@@ -9,6 +9,7 @@ import {
   Clock, CheckCircle, AlertCircle, RefreshCw, Settings, Edit, Layers 
 } from 'lucide-react';
 import { useAuth } from '../../services/auth/AuthContext';
+import NavigationHeader from '../../components/organisms/NavigationHeader';
 import DocumentUpload from '../../components/molecules/DocumentUpload';
 import BatchProcessingInterface from '../../components/molecules/BatchProcessingInterface';
 
@@ -166,8 +167,11 @@ const DocumentProcessingPage = () => {
 
   return (
     <div className="min-vh-100 bg-light" data-testid="document-processing-page">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
+      {/* Navigation Header */}
+      <NavigationHeader />
+      
+      {/* Page Header */}
+      <div className="bg-white border-bottom">
         <Container>
           <Row className="align-items-center py-3">
             <Col>

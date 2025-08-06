@@ -27,7 +27,7 @@ const LoginPage = () => {
   useEffect(() => {
     // Clear any previous errors when component mounts
     clearError();
-  }, [clearError]);
+  }, []); // Remove clearError from dependency array to prevent infinite loop
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -48,11 +48,9 @@ const LoginPage = () => {
       return;
     }
 
-    const result = await login(formData);
-    
-    if (result.success) {
-      navigate(from, { replace: true });
-    }
+    // Let the AuthContext handle the login and state update
+    // The useEffect with isAuthenticated will handle the redirect
+    await login(formData);
   };
 
   const togglePasswordVisibility = () => {

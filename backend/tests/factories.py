@@ -9,9 +9,10 @@ from apps.documents.models import (
     DocumentType, Document, DocumentExtraction, 
     DocumentProcessingLog, DocumentBatch, DocumentBatchItem
 )
-from apps.users.models import Organization, Role
+from apps.users.models import Organization
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone as dt_timezone
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -21,30 +22,25 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
         model = Organization
     
     name = factory.Faker('company')
-    domain = factory.Faker('domain_name')
+    slug = factory.Faker('slug')
+    subscription_plan = factory.Iterator(['starter', 'professional', 'enterprise'])
+    contact_email = factory.Faker('email')
     max_users = factory.fuzzy.FuzzyInteger(10, 1000)
+    max_documents_per_month = factory.fuzzy.FuzzyInteger(100, 10000)
     is_active = True
-
-
-class RoleFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Role
-    
-    name = factory.Iterator(['admin', 'manager', 'user', 'viewer', 'processor'])
-    description = factory.Faker('text', max_nb_chars=200)
-    permissions = factory.LazyFunction(lambda: ['documents.view', 'documents.add'])
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
     
+    username = factory.Sequence(lambda n: f'user{n}')
     email = factory.Faker('email')
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     is_active = True
     organization = factory.SubFactory(OrganizationFactory)
-    role = factory.SubFactory(RoleFactory)
+    role = factory.Iterator(['business_owner', 'operations_staff', 'document_processor', 'it_admin', 'customer_service'])
     
     @factory.post_generation
     def set_password(self, create, extracted, **kwargs):
@@ -121,8 +117,10 @@ class DocumentExtractionFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def set_verified_data(self, create, extracted, **kwargs):
         if create and self.is_verified:
-            self.verified_by = UserFactory()
-            self.verified_at = factory.Faker('date_time', tzinfo=timezone.utc).generate()
+            if not self.verified_by:
+                self.verified_by = UserFactory()
+            if not self.verified_at:
+                self.verified_at = timezone.now()
             self.save()
 
 
@@ -187,7 +185,7 @@ class CompletedDocumentFactory(DocumentFactory):
     """Factory for fully processed documents"""
     status = 'approved'
     ocr_confidence = factory.fuzzy.FuzzyFloat(0.9, 1.0)  # High confidence
-    processing_completed_at = factory.Faker('date_time', tzinfo=timezone.utc)
+    processing_completed_at = factory.Faker('date_time', tzinfo=dt_timezone.utc)
 
 
 class ErrorDocumentFactory(DocumentFactory):

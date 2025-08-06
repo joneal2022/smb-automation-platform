@@ -1,6 +1,8 @@
 import React from 'react';
 import { Container, Row, Col, Card, Button } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../services/auth/AuthContext';
+import NavigationHeader from '../../components/organisms/NavigationHeader';
 import { 
   User, Building, LogOut, Settings, 
   FileText, Workflow, BarChart3, MessageSquare 
@@ -8,9 +10,22 @@ import {
 
 const DashboardPage = () => {
   const { user, logout, hasRole, canAccessFeature } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
+  };
+
+  const navigateToDocuments = () => {
+    navigate('/documents/processing');
+  };
+
+  const navigateToWorkflows = () => {
+    navigate('/workflows');
+  };
+
+  const navigateToAnalytics = () => {
+    navigate('/analytics');
   };
 
   const getRoleDisplayName = () => {
@@ -34,7 +49,7 @@ const DashboardPage = () => {
                 <BarChart3 size={48} className="text-primary mb-3" />
                 <Card.Title>Analytics Dashboard</Card.Title>
                 <Card.Text>View ROI and performance metrics</Card.Text>
-                <Button variant="primary" size="sm">View Analytics</Button>
+                <Button variant="primary" size="sm" onClick={navigateToAnalytics}>View Analytics</Button>
               </Card.Body>
             </Card>
           </Col>
@@ -81,7 +96,7 @@ const DashboardPage = () => {
                 <Workflow size={48} className="text-primary mb-3" />
                 <Card.Title>Workflow Builder</Card.Title>
                 <Card.Text>Create and manage automation workflows</Card.Text>
-                <Button variant="primary" size="sm">Build Workflows</Button>
+                <Button variant="primary" size="sm" onClick={navigateToWorkflows}>Build Workflows</Button>
               </Card.Body>
             </Card>
           </Col>
@@ -91,7 +106,7 @@ const DashboardPage = () => {
                 <FileText size={48} className="text-success mb-3" />
                 <Card.Title>Document Processing</Card.Title>
                 <Card.Text>Monitor document automation</Card.Text>
-                <Button variant="success" size="sm">View Documents</Button>
+                <Button variant="success" size="sm" onClick={navigateToDocuments}>View Documents</Button>
               </Card.Body>
             </Card>
           </Col>
@@ -142,40 +157,8 @@ const DashboardPage = () => {
 
   return (
     <div className="min-vh-100 bg-light">
-      {/* Header */}
-      <div className="bg-white shadow-sm">
-        <Container>
-          <Row className="align-items-center py-3">
-            <Col>
-              <div className="d-flex align-items-center">
-                <Building size={24} className="text-primary me-2" />
-                <h4 className="mb-0 text-dark">SMB Automation Platform</h4>
-              </div>
-            </Col>
-            <Col xs="auto">
-              <div className="d-flex align-items-center gap-3">
-                <div className="text-end d-none d-md-block">
-                  <div className="fw-medium text-dark" data-testid="user-full-name">
-                    {user?.full_name || `${user?.first_name} ${user?.last_name}`}
-                  </div>
-                  <small className="text-muted" data-testid="user-role">
-                    {getRoleDisplayName()}
-                  </small>
-                </div>
-                <Button 
-                  variant="outline-danger" 
-                  size="sm" 
-                  onClick={handleLogout}
-                  data-testid="logout-button"
-                >
-                  <LogOut size={16} className="me-1" />
-                  Logout
-                </Button>
-              </div>
-            </Col>
-          </Row>
-        </Container>
-      </div>
+      {/* Navigation Header */}
+      <NavigationHeader />
 
       {/* Main Content */}
       <Container className="py-4">

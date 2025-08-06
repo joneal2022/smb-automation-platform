@@ -124,7 +124,8 @@ class User(AbstractUser):
         feature_permissions = {
             'business_owner': [
                 'dashboard_executive', 'analytics_full', 'reports_financial', 
-                'user_management', 'organization_settings', 'billing'
+                'user_management', 'organization_settings', 'billing',
+                'document_processing', 'workflow_builder', 'workflow_management'
             ],
             'operations_staff': [
                 'dashboard_operations', 'workflow_builder', 'workflow_management',

@@ -7,6 +7,7 @@ import ProtectedRoute from './components/atoms/ProtectedRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import DocumentProcessingPage from './pages/documents/DocumentProcessingPage';
 
 // Import Bootstrap CSS is already handled in main.jsx
 import './App.css';
@@ -44,13 +45,10 @@ function App() {
           />
           
           <Route 
-            path="/documents/*" 
+            path="/documents/processing" 
             element={
               <ProtectedRoute requiredFeature="document_processing">
-                <div className="p-4 text-center">
-                  <h3>Document Processing</h3>
-                  <p>Coming soon...</p>
-                </div>
+                <DocumentProcessingPage />
               </ProtectedRoute>
             } 
           />
